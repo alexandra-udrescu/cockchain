@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Account{% endblock %}
+
+{% block content %}
+<div class="account-container">
+    <div class="account-profile">
+        <img
+            src="/static/icons/{{ 'admin.png' if is_admin else 'hacker.png' }}"
+            alt="Profile Picture"
+            class="profile-picture"
+        >
+        <p>ID: {{ address }}</p>
+    </div>
+
+    <div class="account-actions">
+        <h2>Upload Wallet File</h2>
+        {% if error %}
+            <p class="error-message">{{ error }}</p>
+        {% endif %}
+        <form method="POST" enctype="multipart/form-data" class="upload-form">
+            <div class="upload-row">
+                <label for="wallet_file" class="upload-label">
+                    Choose File
+                    <input type="file" name="wallet_file" id="wallet_file" accept=".json" required onchange="updateFileName()">
+                </label>
+                <input type="text" id="file_name" class="file-name-box" placeholder="No file chosen" readonly>
+                <button type="submit" class="upload-button">Login</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="logout-section">
+        <form action="{{ url_for('logout') }}" method="POST">
+            <button type="submit" class="logout-button">Logout</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function updateFileName() {
+        const fileInput = document.getElementById('wallet_file');
+        const fileNameBox = document.getElementById('file_name');
+        fileNameBox.value = fileInput.files.length > 0 ? fileInput.files[0].name : "No file chosen";
+    }
+</script>
+{% endblock %}

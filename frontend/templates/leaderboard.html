@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Leaderboard{% endblock %}
+
+{% block content %}
+<h1>Leaderboard</h1>
+<table>
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Points</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+        <tr class="{% if user['username'] == address %}highlight-row{% endif %}">
+            <td><a href="/users/{{ user['username'] }}">{{ user['username'] }}</a></td>
+            <td>{{ user['points'] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user_id }}'s Solves{% endblock %}
+
+{% block content %}
+<h1>{{ user_id }}'s Solves</h1>
+<div class="challenges-grid">
+    {% for solve in solves %}
+    <a class="challenge-card" href="/challenges/{{ solve['id'] }}">
+        <h2>{{ solve['title'] }}</h2>
+        <p><strong>Category:</strong> {{ solve['category'] }}</p>
+        <p><strong>Points:</strong> {{ solve['points'] }}</p>
+    </a>
+    {% endfor %}
+</div>
+{% endblock %}

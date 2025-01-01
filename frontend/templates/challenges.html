@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Challenges{% endblock %}
+
+{% block content %}
+<h1>Challenges</h1>
+<div class="challenges-grid">
+    {% for challenge in challenges %}
+    <a class="challenge-card" href="/challenges/{{ challenge['id'] }}">
+        <img src="/static/icons/{{ challenge['icon'] }}" alt="{{ challenge['category'] }}">
+        <h2>{{ challenge['title'] }}</h2>
+        <p>{{ challenge['category'] }} - {{ challenge['points'] }} Points</p>
+    </a>
+    {% endfor %}
+</div>
+{% endblock %}

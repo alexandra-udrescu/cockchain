@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}RockCTF{% endblock %}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="wrapper">
+        <div class="side-menu">
+            <img src="/static/icons/logo.png" alt="Logo" class="menu-logo"> <!-- Logo -->
+            <h2>RockCTF</h2>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/challenges">Challenges</a></li>
+                <li><a href="/leaderboard">Leaderboard</a></li>
+                <li><a href="/account">Account</a></li>
+            </ul>
+        </div>
+        <div class="main-content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</body>
+</html>
