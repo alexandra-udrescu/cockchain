@@ -36,10 +36,8 @@ def get_challenges():
 def get_leaderboard():
     leaderboard = []
     try:
-        # Get all participants from the contract
         participants = contract.functions.getAllParticipants().call()
         
-        # Fetch points for each participant
         for user in participants:
             points = contract.functions.getUserPoints(user).call()
             leaderboard.append({"username": user, "points": points})
@@ -86,7 +84,16 @@ def home():
 @app.route("/account", methods=["GET", "POST"])
 def account():
     address = request.cookies.get("address", "Not Set")
-    is_admin = request.cookies.get("is_admin", "false") == "true"
+    is_admin = False
+
+    try:
+        admin_list = contract.functions.getAllAdmins().call()
+        if address != "Not Set" and Web3.is_address(address):
+            is_admin = Web3.to_checksum_address(address) in [Web3.to_checksum_address(admin) for admin in admin_list]
+
+    except Exception as e:
+        print(f"Error fetching admin list: {e}")
+        is_admin = False
 
     if request.method == "POST":
         wallet_file = request.files.get("wallet_file")
@@ -96,6 +103,9 @@ def account():
                 address = wallet_data.get("address", "Not Set")
                 private_key = wallet_data.get("private_key", "Not Set")
 
+                if not Web3.is_address(address):
+                    raise ValueError("Invalid Ethereum address in wallet file.")
+
                 if not os.path.exists("wallets"):
                     os.makedirs("wallets")
                 wallet_path = f"wallets/{address}.json"
@@ -103,11 +113,14 @@ def account():
                     with open(wallet_path, "w") as f:
                         json.dump(wallet_data, f, indent=4)
 
+                admin_list = contract.functions.getAllAdmins().call()
+                is_admin = Web3.to_checksum_address(address) in [Web3.to_checksum_address(admin) for admin in admin_list]
+
                 resp = make_response(redirect(url_for("account")))
                 resp.set_cookie("address", address)
                 resp.set_cookie("private_key", private_key)
-                # resp.set_cookie("is_admin", "true" if TODO
                 return resp
+
             except Exception as e:
                 return render_template("account.html", error=f"Invalid wallet file: {str(e)}")
 
@@ -117,10 +130,173 @@ def account():
         is_admin=is_admin,
     )
 
-@app.route("/challenges")
+@app.route("/challenges", methods=["GET"])
 def challenges_list():
     challenges = get_challenges()
-    return render_template("challenges.html", challenges=challenges)
+    address = request.cookies.get("address", "Not Set")
+    is_admin = False
+
+    try:
+        admin_list = contract.functions.getAllAdmins().call()
+        if address != "Not Set" and Web3.is_address(address):
+            is_admin = Web3.to_checksum_address(address) in [Web3.to_checksum_address(admin) for admin in admin_list]
+
+    except Exception as e:
+        print(f"Error checking admin status: {e}")
+
+    return render_template("challenges.html", challenges=challenges, is_admin=is_admin)
+
+@app.route("/challenges/add", methods=["GET", "POST"])
+def add_challenge():
+    address = request.cookies.get("address", "Not Set")
+    private_key = request.cookies.get("private_key", "Not Set")
+    is_admin = False
+
+    try:
+        admin_list = contract.functions.getAllAdmins().call()
+        if address != "Not Set" and Web3.is_address(address):
+            is_admin = Web3.to_checksum_address(address) in [Web3.to_checksum_address(admin) for admin in admin_list]
+    except Exception as e:
+        flash(f"Error checking admin status: {e}", "error")
+
+    if not is_admin:
+        flash("You do not have permission to add challenges.", "error")
+        return redirect(url_for("challenges_list"))
+
+    try:
+        contract_challenges = contract.functions.getAllChallenges().call()
+        if contract_challenges:
+            last_challenge_id = contract_challenges[-1][0]
+            new_id_number = int(last_challenge_id.replace("challenge", "")) + 1
+            new_challenge_id = f"challenge{new_id_number}"
+        else:
+            new_challenge_id = "challenge1"
+
+    except Exception as e:
+        flash(f"Error computing new challenge ID: {e}", "error")
+        new_challenge_id = "challenge1"
+
+    if request.method == "POST":
+        try:
+            title = request.form.get("title")
+            category = request.form.get("category")
+            description = request.form.get("description")
+            flag = request.form.get("flag")
+            points = int(request.form.get("points"))
+
+            tx = contract.functions.addChallenge(
+                new_challenge_id,
+                title,
+                category,
+                description,
+                flag,
+                points
+            ).build_transaction({
+                'from': address,
+                'nonce': web3.eth.get_transaction_count(address),
+                'gas': 5000000,
+                'gasPrice': web3.to_wei('20', 'gwei')
+            })
+
+            signed_tx = web3.eth.account.sign_transaction(tx, private_key)
+            tx_hash = web3.eth.send_raw_transaction(signed_tx.raw_transaction)
+            web3.eth.wait_for_transaction_receipt(tx_hash)
+
+            flash("Challenge added successfully!", "success")
+            return redirect(url_for("challenges_list"))
+
+        except Exception as e:
+            print(e)
+            flash(f"Error adding challenge: {e}", "error")
+    
+    return render_template("add_challenge.html", new_challenge_id=new_challenge_id)
+
+@app.route("/challenges/edit/<challenge_id>", methods=["GET", "POST"])
+def edit_challenge(challenge_id):
+    address = request.cookies.get("address", "Not Set")
+    private_key = request.cookies.get("private_key", "Not Set")
+    is_admin = False
+
+    try:
+        admin_list = contract.functions.getAllAdmins().call()
+        if address != "Not Set" and Web3.is_address(address):
+            is_admin = Web3.to_checksum_address(address) in [Web3.to_checksum_address(admin) for admin in admin_list]
+
+    except Exception as e:
+        print(f"Error checking admin status: {e}")
+
+    if not is_admin:
+        flash("You do not have permission to edit challenges.", "error")
+        return redirect(url_for("challenges_list"))
+
+    challenge = get_challenge_by_id(challenge_id)
+
+    if request.method == "POST":
+        try:
+            title = request.form.get("title")
+            category = request.form.get("category")
+            description = request.form.get("description")
+            flag = request.form.get("flag")
+            points = int(request.form.get("points"))
+
+            tx = contract.functions.updateChallenge(
+                challenge_id, title, category, description, flag, points
+            ).build_transaction({
+                'from': address,
+                'nonce': web3.eth.get_transaction_count(address),
+                'gas': 5000000,
+                'gasPrice': web3.to_wei('20', 'gwei')
+            })
+
+            signed_tx = web3.eth.account.sign_transaction(tx, private_key)
+            tx_hash = web3.eth.send_raw_transaction(signed_tx.raw_transaction)
+            web3.eth.wait_for_transaction_receipt(tx_hash)
+
+            flash("Challenge updated successfully!", "success")
+            return redirect(url_for("challenges_list"))
+
+        except Exception as e:
+            flash(f"Error updating challenge: {e}", "error")
+
+    return render_template("edit_challenge.html", challenge=challenge)
+
+
+@app.route("/challenges/delete/<challenge_id>", methods=["POST"])
+def delete_challenge(challenge_id):
+    address = request.cookies.get("address", "Not Set")
+    private_key = request.cookies.get("private_key", "Not Set")
+    is_admin = False
+
+    try:
+        admin_list = contract.functions.getAllAdmins().call()
+        if address != "Not Set" and Web3.is_address(address):
+            is_admin = Web3.to_checksum_address(address) in [Web3.to_checksum_address(admin) for admin in admin_list]
+
+    except Exception as e:
+        print(f"Error checking admin status: {e}")
+
+    if not is_admin:
+        flash("You do not have permission to delete challenges.", "error")
+        return redirect(url_for("challenges_list"))
+
+    try:
+        tx = contract.functions.deleteChallenge(challenge_id).build_transaction({
+            'from': address,
+            'nonce': web3.eth.get_transaction_count(address),
+            'gas': 5000000,
+            'gasPrice': web3.to_wei('20', 'gwei')
+        })
+
+        signed_tx = web3.eth.account.sign_transaction(tx, private_key)
+        tx_hash = web3.eth.send_raw_transaction(signed_tx.raw_transaction)
+        web3.eth.wait_for_transaction_receipt(tx_hash)
+
+        flash("Challenge deleted successfully!", "success")
+
+    except Exception as e:
+        flash(f"Error deleting challenge: {e}", "error")
+
+    return redirect(url_for("challenges_list"))
 
 @app.route("/leaderboard")
 def leaderboard():
@@ -201,4 +377,4 @@ def page_not_found(e):
     return render_template("error.html", message="Page not found"), 404
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=5000)
