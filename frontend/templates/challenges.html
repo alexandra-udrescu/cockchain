@@ -4,13 +4,31 @@
 
 {% block content %}
 <h1>Challenges</h1>
+
+{% if is_admin %}
+<div class="admin-actions">
+    <a href="/challenges/add" class="admin-button">Add Challenge</a>
+</div>
+{% endif %}
+
 <div class="challenges-grid">
     {% for challenge in challenges %}
-    <a class="challenge-card" href="/challenges/{{ challenge['id'] }}">
-        <img src="/static/icons/{{ challenge['icon'] }}" alt="{{ challenge['category'] }}">
-        <h2>{{ challenge['title'] }}</h2>
-        <p>{{ challenge['category'] }} - {{ challenge['points'] }} Points</p>
-    </a>
+    <div class="challenge-card">
+        <a href="/challenges/{{ challenge['id'] }}">
+            <img src="/static/icons/{{ challenge['icon'] }}" alt="{{ challenge['category'] }}">
+            <h2>{{ challenge['title'] }}</h2>
+            <p>{{ challenge['category'] }} - {{ challenge['points'] }} Points</p>
+        </a>
+
+        {% if is_admin %}
+        <div class="challenge-actions">
+            <a href="/challenges/edit/{{ challenge['id'] }}" class="admin-button">Edit</a>
+            <form action="/challenges/delete/{{ challenge['id'] }}" method="POST" style="display:inline;">
+                <button type="submit" class="admin-button danger">Delete</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
     {% endfor %}
 </div>
 {% endblock %}

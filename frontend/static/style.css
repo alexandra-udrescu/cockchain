@@ -356,3 +356,101 @@ h1 {
 .highlight-row a:hover {
     text-decoration: underline;
 }
+
+.admin-actions {
+    margin-bottom: 20px;
+}
+
+.admin-button {
+    padding: 10px 15px;
+    color: white;
+    background-color: #00aa00;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    margin: 5px;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.admin-button:hover {
+    background-color: #007700;
+}
+
+.admin-button.danger {
+    background-color: #aa0000;
+}
+
+.admin-button.danger:hover {
+    background-color: #770000;
+}
+
+.challenge-container {
+    max-width: 600px;
+    margin: 0 auto;
+    background: #121212;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.challenge-title {
+    text-align: center;
+    color: #32cd32;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-label {
+    display: block;
+    font-weight: bold;
+    color: #32cd32;
+    margin-bottom: 5px;
+}
+
+.form-input, 
+.form-textarea, 
+.form-select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background: #222;
+    color: #fff;
+    font-size: 16px;
+}
+
+.form-textarea {
+    height: 100px;
+}
+
+.form-submit-button {
+    width: 100%;
+    padding: 10px;
+    font-size: 18px;
+    color: #fff;
+    background: #32cd32;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.form-submit-button:hover {
+    background: #28a828;
+}
+
+.messages {
+    margin-top: 15px;
+}
+
+.message {
+    padding: 10px;
+    border-radius: 4px;
+    color: #fff;
+    background: #32cd32;
+    margin-bottom: 10px;
+}

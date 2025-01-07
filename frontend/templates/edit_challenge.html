@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Challenge{% endblock %}
+
+{% block content %}
+<div class="challenge-container">
+    <h1 class="challenge-title">Edit Challenge</h1>
+    <form method="POST" class="challenge-form">
+        <div class="form-group">
+            <label for="title" class="form-label">Title:</label>
+            <input type="text" id="title" name="title" placeholder="Title" value="{{ challenge['title'] }}" required class="form-input">
+        </div>
+
+        <div class="form-group">
+            <label for="category" class="form-label">Category:</label>
+            <select id="category" name="category" required class="form-select">
+                <option value="FORENSICS" {% if challenge['category'] == "FORENSICS" %}selected{% endif %}>FORENSICS</option>
+                <option value="PWN" {% if challenge['category'] == "PWN" %}selected{% endif %}>PWN</option>
+                <option value="OSINT" {% if challenge['category'] == "OSINT" %}selected{% endif %}>OSINT</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="description" class="form-label">Description:</label>
+            <textarea id="description" name="description" placeholder="Description" required class="form-textarea">{{ challenge['description'] }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="flag" class="form-label">Flag:</label>
+            <input type="text" id="flag" name="flag" placeholder="Flag" value="{{ challenge['flag'] }}" required class="form-input">
+        </div>
+
+        <div class="form-group">
+            <label for="points" class="form-label">Points:</label>
+            <input type="number" id="points" name="points" placeholder="Points" value="{{ challenge['points'] }}" required class="form-input">
+        </div>
+
+        <button type="submit" class="form-submit-button">Update Challenge</button>
+    </form>
+</div>
+{% endblock %}
